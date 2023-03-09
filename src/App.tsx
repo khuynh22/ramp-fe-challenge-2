@@ -20,13 +20,14 @@ export function App() {
   )
 
   const loadAllTransactions = useCallback(async () => {
-    setIsLoading(true)
+    // Bug 5 fixed: uncomment the two setter of loading
+    // setIsLoading(true)
     transactionsByEmployeeUtils.invalidateData()
 
     await employeeUtils.fetchAll()
     await paginatedTransactionsUtils.fetchAll()
 
-    setIsLoading(false)
+    // setIsLoading(false)
   }, [employeeUtils, paginatedTransactionsUtils, transactionsByEmployeeUtils])
 
   const loadTransactionsByEmployee = useCallback(
@@ -38,6 +39,7 @@ export function App() {
   )
 
   useEffect(() => {
+    setIsLoading(employeeUtils.loading)
     if (employees === null && !employeeUtils.loading) {
       loadAllTransactions()
     }
@@ -64,8 +66,12 @@ export function App() {
             if (newValue === null) {
               return
             }
-
-            await loadTransactionsByEmployee(newValue.id)
+            // bug 3 fixed: check for all employee and then call loadAllTransactions method
+            if (newValue.id === "") {
+              await loadAllTransactions()
+            } else {
+              await loadTransactionsByEmployee(newValue.id)
+            }
           }}
         />
 
@@ -73,8 +79,8 @@ export function App() {
 
         <div className="RampGrid">
           <Transactions transactions={transactions} />
-
-          {transactions !== null && (
+          {/* Bug 6 fixed: view more button will disapear when needed */}
+          {paginatedTransactions?.nextPage && transactions !== null && (
             <button
               className="RampButton"
               disabled={paginatedTransactionsUtils.loading}
